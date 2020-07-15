@@ -1,0 +1,9 @@
+{
+  "deps": [
+    {
+      "path": "external/mlir-npcomp",
+      "version": "HEAD",
+      "url": "https://github.com/google/mlir-npcomp.git"
+    }
+  ]
+}
