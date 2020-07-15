@@ -1,9 +1,19 @@
 {
   "deps": [
     {
+      "path": "external/llvm-project",
+      "version": "HEAD",
+      "url": "https://github.com/llvm/llvm-project.git"
+    },
+    {
       "path": "external/mlir-npcomp",
       "version": "HEAD",
       "url": "https://github.com/google/mlir-npcomp.git"
-    }
+    },
+    {
+      "path": "external/iree",
+      "version": "HEAD",
+      "url": "https://github.com/google/iree.git"
+    },
   ]
 }
