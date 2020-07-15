@@ -1,6 +1,16 @@
 {
   "deps": [
     {
+      "path": "external/mlir-emitc",
+      "version": "HEAD",
+      "url": "https://github.com/iml130/mlir-emitc.git"
+    },
+    {
+      "path": "external/iree",
+      "version": "HEAD",
+      "url": "https://github.com/google/iree.git"
+    },
+    {
       "path": "external/llvm-project",
       "version": "HEAD",
       "url": "https://github.com/llvm/llvm-project.git"
@@ -11,9 +21,9 @@
       "url": "https://github.com/google/mlir-npcomp.git"
     },
     {
-      "path": "external/iree",
+      "path": "external/pybind11",
       "version": "HEAD",
-      "url": "https://github.com/google/iree.git"
+      "url": "https://github.com/pybind/pybind11.git"
     }
   ]
 }
