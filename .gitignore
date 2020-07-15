@@ -1,2 +1,6 @@
 external/
-
+__pycache__
+build/
+install/
+.vscode/
+.doit.db.db

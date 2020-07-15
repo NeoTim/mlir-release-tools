@@ -1,0 +1,13 @@
+{
+  "build_type": "cmake",
+  "canonical_cmake_args": [
+    "-DLLVM_ENABLE_ASSERTIONS=ON",
+    "-DLLVM_INSTALL_UTILS=ON",
+    "-DLLVM_ENABLE_PROJECTS=mlir",
+    "-DLLVM_TARGETS_TO_BUILD=X86;AArch64;ARM;RISCV",
+    "-DLLVM_INCLUDE_TOOLS=ON",
+    "-DLLVM_BUILD_TOOLS=OFF",
+    "-DLLVM_INCLUDE_TESTS=ON",
+    "-DLLVM_ENABLE_RTTI=ON"
+  ]
+}
