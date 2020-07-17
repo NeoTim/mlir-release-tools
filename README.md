@@ -45,4 +45,4 @@ doit iree_default
 doit npcomp
 ```
 
-Artifacts will be created under the `install/` directory by default.s
+Artifacts will be created under the `install/` directory by default.
