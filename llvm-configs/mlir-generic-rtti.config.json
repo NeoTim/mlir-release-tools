@@ -1,5 +1,4 @@
 {
-  "build_type": "cmake",
   "canonical_cmake_args": [
     "-DLLVM_ENABLE_ASSERTIONS=ON",
     "-DLLVM_INSTALL_UTILS=ON",

@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 TOP_DIR = Path.cwd()
 DEFAULT_BUILD_ROOT = TOP_DIR.joinpath("build").resolve()
@@ -17,6 +18,16 @@ def get_build_root():
 
 def get_install_root():
   return DEFAULT_INSTALL_ROOT
+
+
+def subcommand(args, cwd, env=None):
+  if env is not None:
+    sub_env = dict(os.environ)
+    sub_env.update(env)
+    env = sub_env
+  args = [str(c) for c in args]
+  print("++ EXEC:", " ".join(args))
+  subprocess.check_call(args, cwd=cwd, env=env)
 
 
 class BuildConfig:
@@ -34,16 +45,11 @@ class BuildConfig:
   def __repr__(self):
     return "BuildConfig({}, {})".format(self.identifier, self.json_dict)
 
-  @staticmethod
-  def load(*, config_file, **kwargs):
+  @classmethod
+  def load(cls, *, config_file, **kwargs):
     with open(config_file, "rt") as f:
       d = json.load(f)
-    build_type = "cmake" if "build_type" not in d else d["build_type"]
-    if build_type == "cmake":
-      return CMakeBuildConfig(json_dict=d, **kwargs)
-    else:
-      raise ValueError("Bad 'build_type' = {} in {}".format(
-          build_type, config_file))
+    return cls(json_dict=d, **kwargs)
 
   @property
   def build_dir(self):
@@ -59,19 +65,82 @@ class BuildConfig:
     os.makedirs(path, exist_ok=True)
     return path
 
+  def yield_tasks(self):
+    """Yields tasks for the build."""
+    raise NotImplementedError()
+
 
 class CMakeBuildConfig(BuildConfig):
   """CMake specific build config."""
 
   def __init__(self, configure_dir=None, **kwargs):
     super().__init__(**kwargs)
-    self.configure_dir = (self.source_dir
-                          if configure_dir is None else configure_dir)
+    self.configure_dir = Path(
+        self.source_dir if configure_dir is None else configure_dir)
+
+  def yield_tasks(self,
+                  *,
+                  taskname=None,
+                  basename=None,
+                  install_target=None,
+                  task_dep=()):
+    """Performs a CMake build."""
+
+    def clean_build():
+      shutil.rmtree(self.build_dir)
+
+    def clean_install():
+      shutil.rmtree(self.install_dir)
+
+    def subtask(suffix, qualified=False):
+      subtask_name = basename + ":" + suffix if basename is not None else suffix
+      if qualified and taskname is not None:
+        return taskname + ":" + subtask_name
+      else:
+        return subtask_name
+
+    # "Group" task that depends on individual tasks.
+    yield {
+        "name": basename,
+        "actions": None,
+        "task_dep": [subtask("install", qualified=True),],
+    }
+
+    # Configure task.
+    yield {
+        "name": subtask("config"),
+        "actions": [(self.configure, [])],
+        "targets": [self.build_dir.joinpath("CMakeCache.txt")],
+        "file_dep": [self.configure_dir.joinpath("CMakeLists.txt")],
+        "clean": [clean_build],
+        "task_dep": list(task_dep),
+    }
+    # Build task.
+    yield {
+        "name": subtask("build"),
+        "actions": [(self.build, ["all"])],
+        "file_dep": [self.build_dir.joinpath("CMakeCache.txt")],
+        "clean": [clean_build],
+        "task_dep": [subtask("config", qualified=True)],
+    }
+    # Install.
+    if install_target:
+      yield {
+          "name": subtask("install"),
+          "actions": [(self.build, [install_target])],
+          "file_dep": [self.build_dir.joinpath("CMakeCache.txt")],
+          "clean": [clean_install],
+          "task_dep": [subtask("build", qualified=True)],
+      }
+    else:
+      yield {
+          "name": subtask("install"),
+          "actions": None,
+          "task_dep": [subtask("build", qualified=True)],
+      }
 
   def _exec_cmake(self, cmake_args):
-    cmake_args = [str(c) for c in cmake_args]
-    print("++ EXEC:", " ".join(cmake_args))
-    subprocess.check_call(cmake_args, cwd=self.build_dir)
+    subcommand(cmake_args, cwd=self.build_dir)
 
   @property
   def canonical_cmake_args(self):
@@ -101,16 +170,10 @@ class CMakeBuildConfig(BuildConfig):
     """Builds the component."""
     build_dir = self.build_dir
     cmake_args = [
-      "cmake",
-      "--build",
-      build_dir,
+        "cmake",
+        "--build",
+        build_dir,
     ]
     for target in targets:
       cmake_args.extend(["--target", target])
     self._exec_cmake(cmake_args)
-
-  def clean(self):
-    """Cleans build and install directories."""
-    shutil.rmtree(self.install_dir)
-    shutil.rmtree(self.build_dir)
-
