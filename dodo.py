@@ -12,16 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import builder
 import os
 import pathlib
 import shutil
 
+# Local deps.
+import builder
+
 # Sub-tasks.
 from common_tasks import *
+from llvm_tasks import *
 from iree_tasks import *
 
 DOIT_CONFIG = {
     "default_tasks": [],
 }
+
 

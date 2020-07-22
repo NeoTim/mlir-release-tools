@@ -72,7 +72,7 @@ def task_iree_default():
                                 json_dict=config)
   yield bc.yield_tasks(taskname=taskname,
                        install_target="install",
-                       task_dep=["llvm:" + LLVM_CONFIG + ":install"])
+                       task_dep=["llvm:" + LLVM_CONFIG])
   yield distribute_pyiree(taskname=taskname,
                           label="pyiree_sys",
                           python_exe=sys.executable,
