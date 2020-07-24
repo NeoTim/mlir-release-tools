@@ -2,7 +2,7 @@
 set -e
 
 # Common packages
-sudo apt install git
+sudo apt install -y git unzip
 
 # Install docker
 # Optionally: remove all
