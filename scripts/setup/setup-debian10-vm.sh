@@ -2,7 +2,7 @@
 set -e
 
 # Common packages
-sudo apt install -y git unzip
+sudo apt install -y git unzip ninja-build cmake
 
 # Install docker
 # Optionally: remove all
