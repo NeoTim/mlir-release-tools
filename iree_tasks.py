@@ -15,11 +15,13 @@
 import os
 from pathlib import *
 import shutil
+import subprocess
 import sys
 
 import builder
 
 __all__ = [
+    "task_iree_python_deps",
     "task_iree_default",
 ]
 
@@ -54,14 +56,44 @@ def get_base_cmake_config():
   return config
 
 
+def get_manylinux_platform():
+  """Gets the manylinux platform.
+
+  This can also be used to check if building under manylinux since the env
+  var implies this and also implies the presence of the auditwheel tool.
+  """
+  return os.environ.get("AUDITWHEEL_PLAT")
+
+
 def get_python_cmake_config():
-  # TODO: Get from environment.
-  python_exe = sys.executable
   config = get_base_cmake_config()
+  python_exe = sys.executable
   add_cmake_args(config, "-DIREE_BUILD_PYTHON_BINDINGS=ON",
                  "-DPYTHON_EXECUTABLE={}".format(python_exe))
+
+  # TODO: This should be refactored as a callback of some form.
+  if get_manylinux_platform():
+    addl_args = subprocess.check_output([
+      sys.executable,
+      get_src_dir().joinpath("build_tools/manylinux_py_setup.py"),
+      "args"]).decode("UTF-8").splitlines()
+    config["canonical_cmake_args"].extend(addl_args)
+
   return config
 
+
+def task_iree_python_deps():
+  """Installs required deps for all python versions."""
+  def deps():
+    if get_manylinux_platform():
+      subprocess.check_call([
+        sys.executable,
+        get_src_dir().joinpath("build_tools/manylinux_py_setup.py"),
+        "deps"])
+
+  return {
+    "actions": [(deps, [])],
+  }
 
 def task_iree_default():
   """Builds the IREE default configration."""
