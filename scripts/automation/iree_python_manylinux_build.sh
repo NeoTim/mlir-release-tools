@@ -14,7 +14,7 @@ if [ "$1" != "indocker" ]; then
   ./mmr focus iree
   # Clean up prior?
   # rm -Rf build install .doit.db
-  dockcross-manylinux2014-x64 "./$0 indocker"
+  dockcross-manylinux2014-x64 "./$0" indocker
 else
   set -x
   export PATH=/opt/python/cp38-cp38/bin:$PATH

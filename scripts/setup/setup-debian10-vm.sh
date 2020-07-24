@@ -19,3 +19,4 @@ sudo systemctl --no-pager status docker
 
 # Add the current user to the docker group to make life easier.
 sudo usermod -a -G docker $USER
+sudo usermod -a -G docker buildkite-agent
