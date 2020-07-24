@@ -7,42 +7,21 @@ by developers.
 
 ## Quick start
 
-### Install dependencies
+### VM Setup
+
+Clone this repo into the `/base` directory:
 
 ```shell
-# Or get it some other way.
-python3 -m pip install doit
+mkdir /base
+cd /base
+git clone https://github.com/google/mlir-release-tools.git
 ```
 
+Pre-fetch all deps (can be done periodically to reduce clone times).
 ```shell
-TODO: Fetch the 'mmr' package once open-sourced.
+cd /base/mlir-release-tools
+./mmr init
+./mmr checkout
 ```
 
-### Checkout
-
-```shell
-mkdir new_repo
-cd new_repo
-mmr init
-mmr checkout https://github.com/google/mlir-release-tools
-cd mlir-release-tools
-```
-
-### Sync to a revision cone (if not building at head)
-
-```shell
-# Syncs the source-graph to the revisions from IREE
-cd external/iree
-mmr focus
-cd ../..
-```
-
-### Build
-
-```shell
-doit llvm
-doit iree_default
-doit npcomp
-```
-
-Artifacts will be created under the `install/` directory by default.
+Scripts for setting up a VM are in the scripts/ directory.
