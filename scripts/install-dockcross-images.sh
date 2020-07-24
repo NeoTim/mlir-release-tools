@@ -5,5 +5,5 @@ DOCKCROSS_IMAGES="manylinux2014-x64"
 
 for img in $DOCKCROSS_IMAGES; do
   echo "### Setting up dockcross image $img ###"
-  docker run --rm $img > /usr/local/bin/dockcross-$img
+  docker run --rm dockcross/$img > /usr/local/bin/dockcross-$img
 done
