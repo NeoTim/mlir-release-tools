@@ -39,6 +39,6 @@ if not os.path.exists(DIST_DIR):
   with ZipFile(ARCHIVE_PATH, "r") as zf:
     zf.extractall(path=DIST_DIR)
 
-sys.path.insert(0, os.path.join(ARCHIVE_PATH, "git-mmrepo-main", "python"))
+sys.path.insert(0, os.path.join(DIST_DIR, "git-mmrepo-main", "python"))
 from mmrepo import main
 main.main()
