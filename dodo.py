@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "python"))
 
 # Local deps.
 import builder
+import pythonenv
 
 # Sub-tasks.
 from common_tasks import *
@@ -33,3 +34,16 @@ DOIT_CONFIG = {
 }
 
 
+def task_pythonenvinfo():
+  """Displays information about the python build environment."""
+  def print_info():
+    configs = pythonenv.get_python_target_configs()
+    print("Python build target configs:")
+    for config in configs:
+      print(" ", config)
+
+  return {
+    "actions": [(print_info, [])],
+    "uptodate": [False],
+    "verbosity": 2,
+  }
