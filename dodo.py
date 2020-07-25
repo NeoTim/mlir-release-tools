@@ -15,6 +15,10 @@
 import os
 import pathlib
 import shutil
+import sys
+
+# Add the python/ directory to the path.
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "python"))
 
 # Local deps.
 import builder
