@@ -13,7 +13,8 @@ if [ "$1" != "indocker" ]; then
   ./mmr init --reference=/base/mlir-release-tools
   ./mmr checkout
   ./mmr focus --no-fetch ${VERSION_MAP:-iree}
-  ./mmr status
+  mkdir -p install
+  ./mmr status | tee install/VERSION_MAP
   # Clean up prior?
   # rm -Rf build install .doit.db
   dockcross-manylinux2014-x64 "./$0" indocker
