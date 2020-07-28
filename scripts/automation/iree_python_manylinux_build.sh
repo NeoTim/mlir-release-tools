@@ -16,6 +16,8 @@ if [ "$1" != "indocker" ]; then
 else
   set -x
   export PATH=/opt/python/cp38-cp38/bin:$PATH
+  # TODO: Revert once https://github.com/google/iree/issues/2645 resolved.
+  export IREE_LLVMAOT_LINKER_PATH="$(which ld)"
   python -m pip install doit
   doit iree_python_deps
   doit iree_default
