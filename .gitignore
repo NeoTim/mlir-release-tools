@@ -6,3 +6,6 @@ cache/
 install/
 .vscode/
 .doit.db
+
+VERSION_MAP.txt
+VERSION_STATUS.txt
