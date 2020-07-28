@@ -22,6 +22,3 @@ function die() {
 echo "INITIALIZING REPO. VERSION_MAP=$VERSION_MAP"
 ./mmr init --reference="${MLIR_RELEASE_TOOLS_BASE:-/base/mlir-release-tools}"
 ./mmr version_map "$@" | tee ./VERSION_MAP.txt
-echo "CHECKOUT OUT TREES:"
-echo "-------------------"
-./mmr status | tee ./VERSION_STATUS.txt

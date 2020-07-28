@@ -18,7 +18,11 @@ if [ -f "VERSION_MAP.txt" ]; then
 fi
 echo "INITIALIZING REPO. VERSION_MAP=$VERSION_MAP"
 ./mmr init --reference="${MLIR_RELEASE_TOOLS_BASE:-/base/mlir-release-tools}"
+echo "CHECKING OUT:"
+echo "-------------"
 ./mmr checkout
+echo "SETTING VERSION MAP:"
+echo "--------------------"
 ./mmr version_map --set --no-fetch $VERSION_MAP
 echo "CHECKOUT OUT TREES:"
 echo "-------------------"
