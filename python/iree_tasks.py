@@ -19,27 +19,16 @@ import subprocess
 import sys
 
 import builder
+import cacher
 import pythonenv
 
 __all__ = [
     "task_iree_python_deps",
     "task_iree_default",
+    "task_iree_tf_default",
 ]
 
 LLVM_CONFIG = "mlir-generic-rtti"
-
-BASE_CMAKE_PROTOTYPE = {
-    "canonical_cmake_args": [
-        "-DIREE_BUILD_PYTHON_BINDINGS=ON",
-        "-DIREE_BUILD_SAMPLES=OFF",
-        "-DIREE_MLIR_DEP_MODE=INSTALLED",
-        "-DIREE_HAL_DRIVERS_TO_BUILD=DyLib;Vulkan;VMLA",
-    ]
-}
-
-
-def add_cmake_args(config, *args):
-  config["canonical_cmake_args"].extend(args)
 
 
 def get_src_dir():
@@ -66,6 +55,40 @@ def get_manylinux_platform():
   return os.environ.get("AUDITWHEEL_PLAT")
 
 
+def task_iree_python_deps():
+  """Installs required deps for all python versions."""
+
+  # TODO: Use our pythonenv info and install directly.
+  def deps():
+    if get_manylinux_platform():
+      subprocess.check_call([
+          sys.executable,
+          get_src_dir().joinpath("build_tools/manylinux_py_setup.py"), "deps"
+      ])
+
+  return {
+      "actions": [(deps, [])],
+  }
+
+
+################################################################################
+# CMake build
+################################################################################
+
+BASE_CMAKE_PROTOTYPE = {
+    "canonical_cmake_args": [
+        "-DIREE_BUILD_PYTHON_BINDINGS=ON",
+        "-DIREE_BUILD_SAMPLES=OFF",
+        "-DIREE_MLIR_DEP_MODE=INSTALLED",
+        "-DIREE_HAL_DRIVERS_TO_BUILD=DyLib;Vulkan;VMLA",
+    ]
+}
+
+
+def add_cmake_args(config, *args):
+  config["canonical_cmake_args"].extend(args)
+
+
 def get_python_cmake_config():
   config = get_base_cmake_config()
   python_exe = sys.executable
@@ -90,22 +113,6 @@ def get_python_cmake_config():
   add_cmake_args(config,
                  "-DIREE_MULTIPY_VERSIONS='{}'".format(";".join(config_idents)))
   return config
-
-
-def task_iree_python_deps():
-  """Installs required deps for all python versions."""
-
-  # TODO: Use our pythonenv info and install directly.
-  def deps():
-    if get_manylinux_platform():
-      subprocess.check_call([
-          sys.executable,
-          get_src_dir().joinpath("build_tools/manylinux_py_setup.py"), "deps"
-      ])
-
-  return {
-      "actions": [(deps, [])],
-  }
 
 
 def task_iree_default():
@@ -175,3 +182,60 @@ def distribute_pyiree(taskname, label, python_config, src_dir, build_dir,
       ],
       "task_dep": [taskname + ":install"],
   }
+
+
+################################################################################
+# Bazel build
+################################################################################
+
+
+def get_bazel_python_build_flags(python_config):
+  opt_flags = [
+      "--compilation_mode=opt",
+  ]
+  disk_cache_path = cacher.get_cache_root().joinpath(".bazelcache")
+  cache_flags = [
+      "--disk_cache={}".format(disk_cache_path),
+  ]
+  return [
+      "--config=generic_gcc",
+      # Python binaries.
+      # TODO: Why do we need three of these?
+      "--python_path={}".format(python_config.exe),
+      "--action_env",
+      "PYTHON_BIN={}".format(python_config.exe),
+      "--action_env",
+      "PYTHON_BIN_PATH={}".format(python_config.exe),
+      # Addl flags.
+      # On RHEL6/Centos6 (manylinux2014), post-release additions to the C++
+      # standard library are included in an auxillary static library.
+      "--action_env",
+      "BAZEL_LINKLIBS=-l%:libstdc++.a",
+  ] + opt_flags + cache_flags
+
+
+def task_iree_tf_default():
+  """Builds the IREE tensorflow default configuration."""
+  build_dir = builder.get_build_root().joinpath("iree_tf_bazel")
+  os.makedirs(build_dir, exist_ok=True)
+
+  def exec_build(flags):
+    bazel_args = [
+      "bazel",
+      "--output_base={}".format(build_dir.joinpath("bazel-out")),
+      "build",
+      ] + flags + [
+        "//packaging/python:all_pyiree_packages",
+    ]
+    builder.subcommand(bazel_args, cwd=get_src_dir())
+
+  python_configs = pythonenv.get_python_target_configs()
+  for python_config in python_configs:
+    yield {
+        "name": ("build-" + python_config.ident),
+        "actions": [(exec_build, [get_bazel_python_build_flags(python_config)])
+                   ],
+    }
+
+    # TODO: Enable all of the python configs once stable.
+    break
