@@ -222,12 +222,9 @@ def task_iree_tf_default():
   packaging_src_dir = get_src_dir().joinpath("packaging", "python")
 
   # Pick an appropriate bazel-out.
-  # TODO: Leaving ramdisk override commented out in case if it becomes useful.
-  output_base = build_dir.joinpath("bazel-out")
-  # ramdisk = Path("/dev/shm")
-  # if ramdisk.exists():
-  #   output_base = ramdisk.joinpath("bazel-out")
-  #   shutil.rmtree(output_base, ignore_errors=True)
+  output_base = os.environ.get("BAZEL_OUTPUT_BASE")
+  if output_base is None:
+    output_base = build_dir.joinpath("bazel-out")
 
   def exec_build(python_config, flags):
     dist_wheel_dir = install_dir.joinpath("dist/{}".format(python_config.ident))
