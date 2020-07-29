@@ -16,6 +16,7 @@
 from collections import namedtuple
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -23,6 +24,11 @@ import sysconfig
 import tempfile
 
 _PYTHON_TARGET_CONFIGS = None
+
+# Notes:
+#   - 3.5 is going EOL.
+#   - As of 2020/7/28, 3.9 is missing key Pypi packages
+_MANYLINUX_IDENT_ENABLED = re.compile(r"""cpython-38|cpython-37m|cpython-36m""")
 
 _PYTHON_CONFIG_SCRIPT = r"""
 import json
@@ -60,7 +66,9 @@ def get_python_target_configs():
       for exe in _get_manylinux_python_exes():
         config_str = subprocess.check_output([exe, tmpscript]).decode("UTF-8")
         config_dict = json.loads(config_str)
-        configs.append(PythonTargetConfig(**config_dict))
+        config = PythonTargetConfig(**config_dict)
+        if _MANYLINUX_IDENT_ENABLED.search(config.ident):
+          configs.append(config)
     finally:
       os.remove(tmpscript)
     return tuple(configs)
