@@ -236,7 +236,7 @@ def task_iree_tf_default():
         "--output_base={}".format(output_base),
         "build",
         # TODO: Debug sandbox perf issues.
-        "--spawn_strategy=standalone",
+        # "--spawn_strategy=standalone",
     ] + flags + [
         "//packaging/python:all_pyiree_packages",
     ]

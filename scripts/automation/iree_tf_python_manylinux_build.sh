@@ -19,6 +19,7 @@ if [ "$1" != "indocker" ]; then
     -- "./$0" indocker
 else
   set -x
+  df -h
   export PATH=/opt/python/cp38-cp38/bin:$PATH
   python -m pip install doit
   doit iree_python_deps
