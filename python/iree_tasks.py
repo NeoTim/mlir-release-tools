@@ -227,6 +227,14 @@ def task_iree_tf_default():
   install_dir = builder.get_install_root().joinpath("iree_tf")
   packaging_src_dir = get_src_dir().joinpath("packaging", "python")
 
+  # Pick an appropriate bazel-out.
+  # TODO: Leaving ramdisk override commented out in case if it becomes useful.
+  output_base = build_dir.joinpath("bazel-out")
+  # ramdisk = Path("/dev/shm")
+  # if ramdisk.exists():
+  #   output_base = ramdisk.joinpath("bazel-out")
+  #   shutil.rmtree(output_base, ignore_errors=True)
+
   def exec_build(python_config, flags):
     dist_wheel_dir = install_dir.joinpath("dist/{}".format(python_config.ident))
     os.makedirs(dist_wheel_dir, exist_ok=True)
@@ -234,8 +242,10 @@ def task_iree_tf_default():
     # invoke the bazel build.
     bazel_args = [
         "bazel",
-        "--output_base={}".format(build_dir.joinpath("bazel-out")),
+        "--output_base={}".format(output_base),
         "build",
+        # TODO: Debug sandbox perf issues.
+        "--spawn_strategy=standalone",
     ] + flags + [
         "//packaging/python:all_pyiree_packages",
     ]
