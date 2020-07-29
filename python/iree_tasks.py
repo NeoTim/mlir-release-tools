@@ -57,14 +57,8 @@ def get_manylinux_platform():
 
 def task_iree_python_deps():
   """Installs required deps for all python versions."""
-
-  # TODO: Use our pythonenv info and install directly.
   def deps():
-    if get_manylinux_platform():
-      subprocess.check_call([
-          sys.executable,
-          get_src_dir().joinpath("build_tools/manylinux_py_setup.py"), "deps"
-      ])
+    pythonenv.pip_install("absl-py", "numpy")
 
   return {
       "actions": [(deps, [])],

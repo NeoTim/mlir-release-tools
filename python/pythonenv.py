@@ -96,6 +96,13 @@ def get_python_target_configs():
   return _PYTHON_TARGET_CONFIGS
 
 
+def pip_install(*packages):
+  """Installs pip packages on all targets."""
+  for config in get_python_target_configs():
+    print("Installing packages {} on {}".format(packages, config.exe))
+    subprocess.check_call([config.exe, "-m", "pip", "install"] + list(packages))
+
+
 def _get_manylinux_python_exes():
   """Gets the 'python' executables for all installed manylinux versions."""
   PYTHON_PARENT_PATH = Path("/opt/python")
