@@ -153,9 +153,9 @@ def distribute_pyiree(taskname, label, python_config, src_dir, build_dir,
       # Run auditwheel as needed.
       if pythonenv.is_manylinux_image():
         print("Running auditwheel on", dist_wheel_file)
-        subprocess.check_call(["auditwheel", "repair",
-                               str(dist_wheel_file)],
-                              cwd=dist_wheel_dir)
+        builder.subcommand(["auditwheel", "repair",
+                            str(dist_wheel_file)],
+                           cwd=dist_wheel_dir)
         os.remove(dist_wheel_file)
 
   def setup(setup_py):
@@ -215,26 +215,78 @@ def get_bazel_python_build_flags(python_config):
 
 
 def task_iree_tf_default():
-  """Builds the IREE tensorflow default configuration."""
-  build_dir = builder.get_build_root().joinpath("iree_tf_bazel")
-  os.makedirs(build_dir, exist_ok=True)
+  """Builds the IREE tensorflow default configuration.
 
-  def exec_build(flags):
+  Note that this all has to be done sequentially (versus as tasks with deps)
+  because we have to re-use the build directory to incrementally build
+  for successively different python versions.
+  """
+  build_dir = builder.get_build_root().joinpath("iree_tf_bazel")
+  python_build_dir = build_dir.joinpath("python")
+  os.makedirs(build_dir, exist_ok=True)
+  install_dir = builder.get_install_root().joinpath("iree_tf")
+  packaging_src_dir = get_src_dir().joinpath("packaging", "python")
+
+  def exec_build(python_config, flags):
+    dist_wheel_dir = install_dir.joinpath("dist/{}".format(python_config.ident))
+    os.makedirs(dist_wheel_dir, exist_ok=True)
+
+    # invoke the bazel build.
     bazel_args = [
-      "bazel",
-      "--output_base={}".format(build_dir.joinpath("bazel-out")),
-      "build",
-      ] + flags + [
+        "bazel",
+        "--output_base={}".format(build_dir.joinpath("bazel-out")),
+        "build",
+    ] + flags + [
         "//packaging/python:all_pyiree_packages",
     ]
     builder.subcommand(bazel_args, cwd=get_src_dir())
+
+    # Now, using the identified python, copy from the runfiles to a proper
+    # python path layout (normalizing filenames in a way that bazel can't do).
+    builder.subcommand([
+        python_config.exe,
+        packaging_src_dir.joinpath("hack_python_package_from_runfiles.py"),
+        python_build_dir
+    ],
+                       cwd=get_src_dir())
+
+    # Invoke setup.
+    # Outputs into setup_dir.
+    setup_dir = build_dir.joinpath("pyiree_setup_tf")
+    shutil.rmtree(setup_dir, ignore_errors=True)
+    os.makedirs(setup_dir, exist_ok=True)
+    args = [
+        python_config.exe,
+        packaging_src_dir.joinpath("setup_tf.py"),
+        "bdist_wheel",
+    ]
+    builder.subcommand(args,
+                       cwd=setup_dir,
+                       env={
+                           "PYIREE_PYTHON_ROOT": python_build_dir,
+                       })
+
+    # Copy each built wheel to the dist directory.
+    for wheel_file in setup_dir.joinpath("dist").glob("*.whl"):
+      dist_wheel_file = dist_wheel_dir.joinpath(wheel_file.name)
+      shutil.copy(wheel_file, dist_wheel_file)
+      # Run auditwheel as needed.
+      if pythonenv.is_manylinux_image():
+        print("Running auditwheel on", dist_wheel_file)
+        builder.subcommand(["auditwheel", "repair",
+                            str(dist_wheel_file)],
+                           cwd=dist_wheel_dir)
+        os.remove(dist_wheel_file)
 
   python_configs = pythonenv.get_python_target_configs()
   for python_config in python_configs:
     yield {
         "name": ("build-" + python_config.ident),
-        "actions": [(exec_build, [get_bazel_python_build_flags(python_config)])
-                   ],
+        "actions": [
+            (exec_build,
+             [python_config,
+              get_bazel_python_build_flags(python_config)])
+        ],
     }
 
     # TODO: Enable all of the python configs once stable.
