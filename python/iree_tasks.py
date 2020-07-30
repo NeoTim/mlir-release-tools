@@ -237,6 +237,7 @@ def task_iree_tf_default():
         "build",
         # TODO: Debug sandbox perf issues.
         # "--spawn_strategy=standalone",
+        "--jobs=HOST_CPUS*.75",
     ] + flags + [
         "//packaging/python:all_pyiree_packages",
     ]
