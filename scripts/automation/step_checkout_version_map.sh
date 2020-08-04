@@ -17,7 +17,7 @@ if [ -f "VERSION_MAP.txt" ]; then
   VERSION_MAP="$(cat VERSION_MAP.txt)"
 fi
 echo "INITIALIZING REPO. VERSION_MAP=$VERSION_MAP"
-./mmr init --reference="${MLIR_RELEASE_TOOLS_BASE:-/base/mlir-release-tools}"
+./mmr init --local-mirror="$HOME/.mrtmirror"
 echo "CHECKING OUT:"
 echo "-------------"
 ./mmr checkout
