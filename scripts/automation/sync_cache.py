@@ -86,6 +86,7 @@ def do_push(parser):
   snapshot_dir = parser.snapshot_dir
   if not os.path.exists(snapshot_dir):
     print("Snapshot dir does not exist (not syncing):", snapshot_dir)
+    return
   os.makedirs(shared_cache_dir, exist_ok=True)
   with os.scandir(snapshot_dir) as it:
     for entry in it:
@@ -124,6 +125,7 @@ def do_pull(parser):
   shared_cache_dir = parser.shared_cache_dir
   if not os.path.exists(shared_cache_dir):
     print("Shared cache dir does not exist (not syncing):", shared_cache_dir)
+    return
   os.makedirs(snapshot_dir, exist_ok=True)
   with os.scandir(shared_cache_dir) as it:
     for entry in it:
