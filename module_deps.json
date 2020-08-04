@@ -18,7 +18,7 @@
     {
       "path": "external/mlir-npcomp",
       "version": "HEAD",
-      "url": "https://github.com/google/mlir-npcomp.git"
+      "url": "https://github.com/llvm/mlir-npcomp.git"
     },
     {
       "path": "external/pybind11",
