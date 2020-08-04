@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "python"))
 
 # Local deps.
 import builder
+import cacher
 import pythonenv
 
 # Sub-tasks.
@@ -34,10 +35,11 @@ DOIT_CONFIG = {
 }
 
 
-def task_pythonenvinfo():
+def task_envinfo():
   """Displays information about the python build environment."""
   def print_info():
     configs = pythonenv.get_python_target_configs()
+    print("Cache directory:", cacher.get_cache_root())
     print("Python build target configs:")
     for config in configs:
       print(" ", config)

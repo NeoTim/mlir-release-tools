@@ -21,9 +21,15 @@ import traceback
 
 import builder
 
+CACHE_DIR_ENV_VAR = "MRT_CACHE_DIR"
+
 
 def get_cache_root():
-  return builder.TOP_DIR.joinpath("cache").resolve()
+  env_value = os.environ.get(CACHE_DIR_ENV_VAR)
+  if env_value:
+    return Path(env_value)
+  else:
+    return builder.TOP_DIR.joinpath("cache").resolve()
 
 
 def read_git_state(src_dir):
