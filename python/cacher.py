@@ -145,6 +145,8 @@ class InstallCache:
       raise
     else:
       self.touch_marker_file()
+      # We touch the archive as a primitive LRU (old items will be expired).
+      archive_path.touch()
 
   def store_install_to_cache(self):
     self.create_cache_archive_file()
