@@ -130,7 +130,8 @@ class InstallCache:
 
   def expand_cache_archive_file(self):
     archive_path = self.cache_archive_file
-    if not archive_path.exists(): return
+    if not archive_path.exists():
+      return
     install_dir = self.install_dir
     os.makedirs(install_dir.parent, exist_ok=True)
     print("Extracting cache archive file:", archive_path)
@@ -153,11 +154,11 @@ class InstallCache:
     # TODO: Fetch from shared cache.
     self.expand_cache_archive_file()
 
-  def yield_tasks(self, *, taskname=None, basename=None):
+  def yield_tasks(self, *, taskname=None, basename="default"):
     """Yields all tasks to cache and locally build as necessary."""
 
     def subtask(suffix, qualified=False):
-      subtask_name = basename + ":" + suffix if basename is not None else suffix
+      subtask_name = basename + ":" + suffix
       if qualified and taskname is not None:
         return taskname + ":" + subtask_name
       else:
@@ -181,7 +182,10 @@ class InstallCache:
       # Branch based on fetched.
       if self.install_is_ok():
         # Fetch succeeded. No deps.
-        return
+        print("Install is ok. Not building deps.")
+        return {
+            "task_dep": [subtask("install_ok", qualified=True)],
+        }
       else:
         # Fetch did not succeed. Delegate to the install task.
         print("Could not fetch cached {}: Building locally".format(
@@ -204,7 +208,11 @@ class InstallCache:
     yield {
         "name": basename,
         "actions": None,
-        "calc_dep": [subtask("fetch_cache", qualified=True)]
+        "calc_dep": [subtask("fetch_cache", qualified=True)],
+    }
+    yield {
+        "name": subtask("install_ok"),
+        "actions": [],
     }
     yield {
         "name": subtask("fetch_cache"),

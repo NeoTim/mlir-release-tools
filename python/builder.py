@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utilities for invoking builds."""
 
 from pathlib import *
@@ -97,6 +96,7 @@ class CMakeBuildConfig(BuildConfig):
                   taskname=None,
                   basename=None,
                   install_target=None,
+                  test_target=None,
                   task_dep=()):
     """Performs a CMake build."""
 
@@ -137,6 +137,20 @@ class CMakeBuildConfig(BuildConfig):
         "clean": [clean_build],
         "task_dep": [subtask("config", qualified=True)],
     }
+    # Test.
+    if test_target:
+      yield {
+          "name": subtask("test"),
+          "actions": [(self.build, [test_target])],
+          "file_dep": [self.build_dir.joinpath("CMakeCache.txt")],
+          "task_dep": [subtask("build", qualified=True)],
+      }
+    else:
+      yield {
+          "name": subtask("test"),
+          "actions": None,
+          "task_dep": [subtask("build", qualified=True)],
+      }
     # Install.
     if install_target:
       yield {
@@ -144,13 +158,13 @@ class CMakeBuildConfig(BuildConfig):
           "actions": [(self.build, [install_target])],
           "file_dep": [self.build_dir.joinpath("CMakeCache.txt")],
           "clean": [clean_install],
-          "task_dep": [subtask("build", qualified=True)],
+          "task_dep": [subtask("test", qualified=True)],
       }
     else:
       yield {
           "name": subtask("install"),
           "actions": None,
-          "task_dep": [subtask("build", qualified=True)],
+          "task_dep": [subtask("test", qualified=True)],
       }
 
   def _exec_cmake(self, cmake_args):

@@ -46,15 +46,6 @@ def get_base_cmake_config():
   return config
 
 
-def get_manylinux_platform():
-  """Gets the manylinux platform.
-
-  This can also be used to check if building under manylinux since the env
-  var implies this and also implies the presence of the auditwheel tool.
-  """
-  return os.environ.get("AUDITWHEEL_PLAT")
-
-
 def task_iree_python_deps():
   """Installs required deps for all python versions."""
   def deps():

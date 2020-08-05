@@ -18,6 +18,7 @@ import cacher
 __all__ = [
     "task_envinfo",
     "task_pybind11",
+    "task_build_pybind11",
 ]
 
 
@@ -36,9 +37,19 @@ def task_envinfo():
 
 
 def task_pybind11():
-  """Installs pybind11."""
+  """Installs a cached pybind11 or builds locally."""
+  ic = cacher.InstallCache(
+      identifier="pybind11",
+      cache_key="pybind11",
+      install_task="build_pybind11:install",
+      version_data_lambda=lambda: cacher.read_git_state("external/pybind11"))
+  yield ic.yield_tasks(taskname="pybind11")
+
+
+def task_build_pybind11():
+  """Builds and Installs pybind11."""
   bc = builder.CMakeBuildConfig(
       identifier="pybind11",
       source_dir=builder.TOP_DIR.joinpath("external/pybind11"),
-      json_dict={"canonical_cmake_args": []})
-  yield bc.yield_tasks(taskname="pybind11", install_target="install")
+      json_dict={"canonical_cmake_args": ["-DPYBIND11_TEST=OFF"]})
+  yield bc.yield_tasks(taskname="build_pybind11", install_target="install")

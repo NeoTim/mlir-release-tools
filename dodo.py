@@ -29,6 +29,7 @@ import pythonenv
 from common_tasks import *
 from llvm_tasks import *
 from iree_tasks import *
+from npcomp_tasks import *
 
 DOIT_CONFIG = {
     "default_tasks": [],
