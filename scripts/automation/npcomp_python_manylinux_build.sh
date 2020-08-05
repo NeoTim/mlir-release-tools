@@ -27,6 +27,7 @@ else
   set -x
   export PATH=/opt/python/cp38-cp38/bin:$PATH
   export LIT_OPTS="-v"
-  python -m pip install doit
+  # TODO: Bake these into the image.
+  python -m pip install doit numpy
   doit npcomp_default
 fi
