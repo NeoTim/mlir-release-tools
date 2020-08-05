@@ -10,8 +10,10 @@ function die() {
 [ -f "dodo.py" ] || die "Must be run from the repo root"
 
 function cleanup_outer() {
+  set +e
   echo "Pushing to cache..."
   ./scripts/automation/sync_cache.py --push ./cache "$MRT_SHARED_CACHE_DIR"
+  echo "Cache push complete"
 }
 
 if [ "$1" != "indocker" ]; then
@@ -24,6 +26,7 @@ if [ "$1" != "indocker" ]; then
 else
   set -x
   export PATH=/opt/python/cp38-cp38/bin:$PATH
+  export LIT_OPTS="-v"
   python -m pip install doit
   doit npcomp_default
 fi
