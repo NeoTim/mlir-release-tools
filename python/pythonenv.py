@@ -104,9 +104,13 @@ def pip_install(*packages):
 
 
 def _get_manylinux_python_exes():
-  """Gets the 'python' executables for all installed manylinux versions."""
+  """Gets the 'python' executables for all installed manylinux versions.
+
+  This sorts lexographically by identifier, which should yield the oldest
+  version first.
+  """
   PYTHON_PARENT_PATH = Path("/opt/python")
-  return reversed(sorted(PYTHON_PARENT_PATH.glob("*/bin/python")))
+  return sorted(PYTHON_PARENT_PATH.glob("*/bin/python"))
 
 
 def is_manylinux_image():

@@ -25,7 +25,7 @@ if [ "$1" != "indocker" ]; then
   dockcross-manylinux2014-x64 "./$0" indocker
 else
   set -x
-  export PATH=/opt/python/cp38-cp38/bin:$PATH
+  export PATH=/opt/python/cp36-cp36m/bin:$PATH
   export LIT_OPTS="-v"
   # TODO: Bake these into the image.
   python -m pip install doit numpy
